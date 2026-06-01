@@ -4,6 +4,8 @@
 - Login functionality
 - User registration
 - Password reset
+- User profile management
+- Admin dashboard
 
 ## Test Types
 - Unit tests
