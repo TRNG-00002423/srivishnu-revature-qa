@@ -82,6 +82,51 @@ def format_duration(ms, unit="ms"):
         raise ValueError(f"Unknown unit: {unit!r}. Use 'ms', 's', or 'min'.")
 
 
+def calculate_stats(*scores):
+    """Calculate statistics for any number of scores.
+
+    Returns:
+        dict with keys: count, total, average, min, max
+
+    Raises:
+        ValueError if no scores provided
+    """
+    if not scores:
+        raise ValueError("At least one score is required.")
+    return {
+        "count":   len(scores),
+        "total":   sum(scores),
+        "average": round(sum(scores) / len(scores), 1),
+        "min":     min(scores),
+        "max":     max(scores),
+    }
+
+
+def build_test_config(**settings):
+    """Build a test configuration with defaults.
+
+    Default config:
+        browser: "chrome"
+        headless: False
+        timeout: 30
+        retries: 0
+        base_url: "http://localhost:3000"
+
+    Any **settings passed override the defaults.
+
+    Returns: dict
+    """
+    defaults = {
+        "browser":  "chrome",
+        "headless": False,
+        "timeout":  30,
+        "retries":  0,
+        "base_url": "http://localhost:3000",
+    }
+    defaults.update(settings)
+    return defaults
+
+
 # --- Assertions / Self-Tests ---
 if __name__ == "__main__":
     assert format_test_name("Valid Login") == "test_valid_login"
@@ -100,5 +145,17 @@ if __name__ == "__main__":
 
     assert format_duration(1200) == "1,200ms"
     assert format_duration(1200, "s") == "1.20s"
+
+    # Task 3 assertions
+    stats = calculate_stats(85, 92, 78, 95, 88)
+    assert stats["count"] == 5
+    assert stats["average"] == 87.6
+    assert stats["min"] == 78
+    assert stats["max"] == 95
+
+    config = build_test_config(headless=True, timeout=60)
+    assert config["browser"] == "chrome"  # default
+    assert config["headless"] == True     # overridden
+    assert config["timeout"] == 60        # overridden
 
     print("✅ All assertions passed!")
