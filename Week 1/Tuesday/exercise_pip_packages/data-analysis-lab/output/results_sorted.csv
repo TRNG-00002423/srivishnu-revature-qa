@@ -1,0 +1,13 @@
+test_name,module,duration_ms,status,timestamp,duration_sec
+test_checkout_payment,checkout,3100,pass,2026-04-01 09:25:00,3.1
+test_checkout_cart,checkout,2300,fail,2026-04-01 09:20:00,2.3
+test_register_new,auth,2100,pass,2026-04-01 09:05:00,2.1
+test_checkout_confirm,checkout,1900,pass,2026-04-01 09:28:00,1.9
+test_search_filters,search,1800,fail,2026-04-01 09:12:00,1.8
+test_login_valid,auth,1200,pass,2026-04-01 09:00:00,1.2
+test_login_locked,auth,920,fail,2026-04-01 09:02:00,0.92
+test_login_invalid,auth,850,pass,2026-04-01 09:01:00,0.85
+test_search_sort,search,670,pass,2026-04-01 09:14:00,0.67
+test_profile_edit,profile,540,pass,2026-04-01 09:32:00,0.54
+test_search_basic,search,450,pass,2026-04-01 09:10:00,0.45
+test_profile_view,profile,380,pass,2026-04-01 09:30:00,0.38
