@@ -127,6 +127,60 @@ def build_test_config(**settings):
     return defaults
 
 
+def analyze_results(*results):
+    """Analyze a list of test result dicts.
+
+    Args:
+        *results: test result dicts (from create_test_result)
+
+    Returns:
+        tuple of (passed_count, failed_count, pass_rate, avg_duration)
+    """
+    total        = len(results)
+    passed_count = sum(1 for r in results if r["status"] == "pass")
+    failed_count = total - passed_count
+    pass_rate    = round((passed_count / total) * 100, 1) if total else 0.0
+    avg_duration = round(sum(r["duration_ms"] for r in results) / total, 1) if total else 0.0
+    return passed_count, failed_count, pass_rate, avg_duration
+
+
+def generate_report(*results):
+    """Generate a formatted test report string.
+
+    Calls analyze_results() internally and formats the output.
+
+    Returns: formatted multi-line string
+    """
+    passed, failed, rate, avg = analyze_results(*results)
+    total = len(results)
+
+    lines = [
+        "═" * 44,
+        "  Test Suite Report",
+        "═" * 44,
+    ]
+    for r in results:
+        icon = "✅" if r["status"] == "pass" else "❌"
+        dur  = format_duration(r["duration_ms"])
+        err  = f" → {r['error']}" if r["error"] else ""
+        lines.append(f"  {icon} {r['name']:<22} {dur:>8}{err}")
+
+    lines.append("─" * 44)
+    lines.append(f"  Total:   {total}  |  Passed: {passed}  |  Failed: {failed}")
+    lines.append(f"  Pass Rate: {rate}%  |  Avg Duration: {avg}ms")
+
+    if rate >= 95:
+        verdict = "✅ RELEASE APPROVED"
+    elif rate >= 80:
+        verdict = "⚠️ CONDITIONAL RELEASE — review failures"
+    else:
+        verdict = "❌ RELEASE BLOCKED — too many failures"
+
+    lines.append(f"  Verdict: {verdict}")
+    lines.append("═" * 44)
+    return "\n".join(lines)
+
+
 # --- Assertions / Self-Tests ---
 if __name__ == "__main__":
     assert format_test_name("Valid Login") == "test_valid_login"
@@ -158,4 +212,18 @@ if __name__ == "__main__":
     assert config["headless"] == True     # overridden
     assert config["timeout"] == 60        # overridden
 
+    # Task 4 assertions
+    results = [
+        create_test_result("test_login",    "pass", 1200),
+        create_test_result("test_search",   "pass",  850),
+        create_test_result("test_checkout", "fail", 2300, "Timeout"),
+        create_test_result("test_profile",  "pass",  450),
+    ]
+    passed, failed, rate, avg = analyze_results(*results)
+    assert passed == 3
+    assert failed == 1
+    assert rate   == 75.0
+
     print("✅ All assertions passed!")
+    print()
+    print(generate_report(*results))
