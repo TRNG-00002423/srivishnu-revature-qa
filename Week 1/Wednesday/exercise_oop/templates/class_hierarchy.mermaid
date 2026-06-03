@@ -1,0 +1,55 @@
+classDiagram
+
+    class TestCase {
+        <<instance attributes>>
+        +str name
+        +str description
+        +callable test_fn
+        +str status
+        --
+        +run() TestResult
+        +__str__() str
+    }
+
+    class TestSuite {
+        <<class attribute>>
+        +int total_suites$
+        --
+        <<instance attributes>>
+        +str name
+        +list~TestCase~ test_cases
+        --
+        +add_test(test_case: TestCase)
+        +remove_test(name: str)
+        +__len__() int
+        +__str__() str
+    }
+
+    class TestResult {
+        <<instance attributes>>
+        +str test_name
+        +str status
+        +str message
+        +float duration
+        --
+        +is_passed() bool
+        +__str__() str
+    }
+
+    class TestRunner {
+        <<class attribute>>
+        +int runs_total$
+        --
+        <<instance attributes>>
+        +TestSuite suite
+        +list~TestResult~ results
+        --
+        +run_suite() list~TestResult~
+        +print_summary()
+        +get_pass_rate() float
+    }
+
+    TestSuite "1" o-- "many" TestCase : contains
+    TestRunner "1" --> "1" TestSuite   : executes
+    TestRunner "1" --> "many" TestResult : collects
+    TestCase ..> TestResult : produces
