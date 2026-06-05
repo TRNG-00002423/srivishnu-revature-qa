@@ -62,8 +62,44 @@ class TestCase:
         return f"TestCase(name='{self.name}', priority='{self.priority}')"
 
 
-# test 
+class TestResult:
+    """The outcome of running a single test.
+
+    Instance Attributes:
+        test_name (str): Which test was run
+        status (str): "pass" or "fail"
+        duration_ms (float): How long it took
+        error_message (str or None): Error details if failed
+    """
+
+    def __init__(self, test_name, status, duration_ms=0.0, error_message=None):
+        self.test_name = test_name
+        self.status = status.lower()
+        self.duration_ms = duration_ms
+        self.error_message = error_message
+
+    def is_passed(self):
+        """Return True if the test passed."""
+        return self.status == "pass"
+
+    def summary(self):
+        """Return a one-line summary like: '✅ test_login (120ms)'"""
+        icon = "✅" if self.is_passed() else "❌"
+        line = f"{icon} {self.test_name} ({self.duration_ms:.1f}ms)"
+        if self.error_message:
+            line += f" — {self.error_message}"
+        return line
+
+    def __str__(self):
+        return self.summary()
+
+    def __repr__(self):
+        return f"TestResult(test_name='{self.test_name}', status='{self.status}')"
+
+
+# test
 if __name__ == "__main__":
+
     # Create via constructor
     tc1 = TestCase("test_login_valid", "Checks valid login flow", priority="high", tags=["smoke"])
     tc2 = TestCase("test_fail_checkout", "Checkout with expired card", priority="medium", tags=["regression"])
@@ -82,3 +118,10 @@ if __name__ == "__main__":
     print(f"  'test_login'     → {TestCase.is_valid_name('test_login')}")
     print(f"  'login test'     → {TestCase.is_valid_name('login test')}")
     print(f"  'check_login'    → {TestCase.is_valid_name('check_login')}")
+
+    # TestResult smoke test
+    print("\n── TestResult ──────────────────────────")
+    tr1 = TestResult("test_login_valid", "pass", duration_ms=120.5)
+    tr2 = TestResult("test_fail_checkout", "fail", duration_ms=45.0, error_message="Card declined")
+    for tr in [tr1, tr2]:
+        print(tr.summary())
