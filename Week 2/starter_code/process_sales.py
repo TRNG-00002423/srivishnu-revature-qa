@@ -1,11 +1,12 @@
 """
 Week 2 Exercise — CSV processing with context managers.
 
-TODO:
 1. Read starter_code/data/sales.csv using csv.DictReader and with open(...).
 2. Compute rows count, grand total (sum of units * unit_price), average line revenue.
 3. Find SKU with max line revenue (tie: first in file).
 4. Write output/summary.txt using with open(..., "w", encoding="utf-8").
+
+All paths are relative to starter_code/ (the directory this script lives in).
 """
 
 from __future__ import annotations
@@ -14,22 +15,13 @@ import csv
 import sys
 from pathlib import Path
 
-BASE_DIR = Path(__file__).parent
-DATA_FILE = BASE_DIR / "data" / "sales.csv"
+BASE_DIR   = Path(__file__).parent
+DATA_FILE  = BASE_DIR / "data" / "sales.csv"
+OUTPUT_FILE = BASE_DIR / "output" / "summary.txt"
 
 
 def read_sales(filepath: Path) -> list[dict]:
-    """
-    Open the CSV with a context manager and return a list of parsed rows.
-
-    - encoding="utf-8"  : explicit, portable across platforms
-    - newline=""        : required by the csv module so it handles its own newlines
-
-    Each valid row becomes a dict:
-        {"sku": str, "units": int, "unit_price": float, "line_revenue": float}
-
-    Malformed rows are skipped and reported to stderr (graceful degradation).
-    """
+    
     parsed_rows = []
     bad_row_count = 0
 
@@ -66,21 +58,49 @@ def read_sales(filepath: Path) -> list[dict]:
     return parsed_rows
 
 
+def compute_summary(rows: list) -> dict:
+   
+    row_count   = len(rows)
+    grand_total = sum(r["line_revenue"] for r in rows)
+    average_line_rev = grand_total / row_count if row_count else 0.0
+
+    top_row = max(rows, key=lambda r: r["line_revenue"])
+
+    return {
+        "row_count":        row_count,
+        "grand_total":      grand_total,
+        "average_line_rev": average_line_rev,
+        "top_sku":          top_row["sku"],
+        "top_line_revenue": top_row["line_revenue"],
+    }
+
+
+def write_report(summary: dict, output_path: Path) -> None:
+    
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+
+    with open(output_path, "w", encoding="utf-8") as report_file:
+        report_file.write(f"rows={summary['row_count']}\n")
+        report_file.write(f"grand_total={summary['grand_total']:.2f}\n")
+        report_file.write(f"average_line_revenue={summary['average_line_rev']:.2f}\n")
+        report_file.write(f"top_sku={summary['top_sku']}\n")
+        report_file.write(f"top_line_revenue={summary['top_line_revenue']:.2f}\n")
+
+
 def main() -> None:
-    print(f"Reading: {DATA_FILE}\n")
-
+    print(f"Reading:  {DATA_FILE}")
     rows = read_sales(DATA_FILE)
+    print(f"Parsed {len(rows)} valid data rows.\n")
 
-    print(f"Valid data rows parsed: {len(rows)}\n")
-    print(f"{'SKU':<12} {'Units':>6} {'Unit Price':>12} {'Line Revenue':>14}")
-    print("-" * 48)
-    for row in rows:
-        print(
-            f"{row['sku']:<12} {row['units']:>6} "
-            f"{row['unit_price']:>12.2f} {row['line_revenue']:>14.2f}"
-        )
+    summary = compute_summary(rows)
+    write_report(summary, OUTPUT_FILE)
 
-    print("\nTask 1 complete — data is read, typed, and ready for aggregation in Task 2.")
+    print(f"Report written to: {OUTPUT_FILE}\n")
+    print("--- summary.txt contents ---")
+
+    with open(OUTPUT_FILE, encoding="utf-8") as f:
+        print(f.read(), end="")
+    print("----------------------------")
 
 
 if __name__ == "__main__":
